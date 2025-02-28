@@ -1,12 +1,12 @@
 const bcrypt = require(`bcrypt`);
-const User = require("../Models/users")
+const Users = require("../Models/users")
 
 
 exports.createUser =  async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
-        const isUserExist = await User.findOne({ where : { email : email } });
+        const isUserExist = await Users.findOne({ where : { email : email } });
 
         if(isUserExist){
 
@@ -20,7 +20,7 @@ exports.createUser =  async (req, res) => {
             const newId = Date.now();
             const salt = 10;
             const hashedPassword = await bcrypt.hash(password, salt);
-            const newUser = await User.create({ id: newId, name : name, email : email, password : hashedPassword });
+            const newUser = await Users.create({ id: newId, name : name, email : email, password : hashedPassword });
 
             res.status(201).json({
                 success: true,
@@ -43,7 +43,7 @@ exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const isUserExist = await User.findOne({ where : { email : email } });
+        const isUserExist = await Users.findOne({ where : { email : email } });
 
         if(!isUserExist){
             res.status(404).json({
