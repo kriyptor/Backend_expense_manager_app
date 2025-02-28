@@ -20,7 +20,14 @@ exports.createUser =  async (req, res) => {
             const newId = Date.now();
             const salt = 10;
             const hashedPassword = await bcrypt.hash(password, salt);
-            const newUser = await Users.create({ id: newId, name : name, email : email, password : hashedPassword });
+            
+            const newUser = await Users.create({
+              id: newId,
+              name: name,
+              email: email,
+              password: hashedPassword,
+              totalExpense : 0
+            });
 
             res.status(201).json({
                 success: true,

@@ -21,6 +21,11 @@ const Users = db.define(`Users`, {
     password : {
         type : Sequelize.STRING,
         allowNull : false
+    },
+
+    totalExpense : {
+        type : Sequelize.DOUBLE,
+        allowNull : false
     }
 });
 
