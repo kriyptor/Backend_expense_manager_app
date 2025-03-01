@@ -25,7 +25,8 @@ const Users = db.define(`Users`, {
 
     totalExpense : {
         type : Sequelize.DOUBLE,
-        allowNull : false
+        allowNull : false,
+        defaultValue: 0
     }
 });
 

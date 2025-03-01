@@ -58,7 +58,7 @@ exports.createExpense = async (req, res) => {
           },
           { transaction });
   
-          const prevTotalExpense = await Users.findOne({
+          /* const prevTotalExpense = await Users.findOne({
             attributes: [`totalExpense`],
             where: { id: userId },
             lock : transaction.LOCK.UPDATE, //study
@@ -69,7 +69,13 @@ exports.createExpense = async (req, res) => {
           
           console.log(updatedTotalExpense, prevTotalExpense.totalExpense)
   
-          await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId }, transaction });
+          await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId }, transaction }); */
+
+          await Users.increment("totalExpense", {
+            by: amount,
+            where: { id: userId },
+            transaction
+          });
 
           await transaction.commit(); // Commit the transaction
 
@@ -107,7 +113,7 @@ exports.deleteExpense = async (req, res) => {
         
         const deletedExpense = await Expenses.destroy({ where : { id : expenseId }, transaction });
 
-        const prevTotalExpense = await Users.findOne({
+        /* const prevTotalExpense = await Users.findOne({
             attributes: [`totalExpense`],
             where: { id: userId },
             lock : transaction.LOCK.UPDATE, //study
@@ -118,7 +124,13 @@ exports.deleteExpense = async (req, res) => {
           
           console.log(updatedTotalExpense, prevTotalExpense.totalExpense)
   
-          await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId }, transaction });
+          await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId }, transaction }); */
+
+          await Users.increment("totalExpense", {
+            by: (Number(getExpenseAmt.amount) * -1),
+            where: { id: userId },
+            transaction
+          });
 
         await transaction.commit(); // Commit the transaction
 

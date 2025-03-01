@@ -26,7 +26,6 @@ exports.createUser =  async (req, res) => {
               name: name,
               email: email,
               password: hashedPassword,
-              totalExpense : 0
             });
 
             res.status(201).json({
