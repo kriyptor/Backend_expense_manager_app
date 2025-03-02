@@ -1,7 +1,7 @@
 const Expenses = require(`../Models/expenses`);
 const Users = require(`../Models/users`);
 const db = require('../utils/database');
-
+const { v4: uuidv4 } = require('uuid');
 
 exports.getAllExpense = async (req, res) => {
     try {
@@ -31,7 +31,7 @@ exports.createExpense = async (req, res) => {
     try {
         const { userId, amount, category, description } = req.body;
 
-        const expenseId = Date.now();
+        const expenseId = uuidv4();
 
         /* const newExpense = await Expenses.create({
           id: expenseId,

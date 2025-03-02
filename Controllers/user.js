@@ -1,6 +1,6 @@
 const bcrypt = require(`bcrypt`);
 const Users = require("../Models/users")
-
+const { v4: uuidv4 } = require('uuid');
 
 exports.createUser =  async (req, res) => {
     try {
@@ -17,7 +17,7 @@ exports.createUser =  async (req, res) => {
 
         }else{
 
-            const newId = Date.now();
+            const newId = uuidv4();
             const salt = 10;
             const hashedPassword = await bcrypt.hash(password, salt);
             

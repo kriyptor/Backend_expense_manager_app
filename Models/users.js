@@ -3,7 +3,7 @@ const db = require(`../utils/database`);
 
 const Users = db.define(`Users`, {
     id : {
-        type :  Sequelize.DOUBLE,
+        type :  Sequelize.STRING,
         allowNull : false,
         primaryKey: true,
     },
@@ -27,7 +27,14 @@ const Users = db.define(`Users`, {
         type : Sequelize.DOUBLE,
         allowNull : false,
         defaultValue: 0
+    },
+
+    premiumUser : {
+        type : Sequelize.BOOLEAN,
+        allowNull : false,
+        defaultValue: false
     }
+
 });
 
 module.exports = Users;

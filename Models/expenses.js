@@ -3,7 +3,7 @@ const db = require(`../utils/database`);
 
 const Expenses = db.define(`Expenses`, {
     id : {
-        type :  Sequelize.DOUBLE,
+        type :  Sequelize.STRING,
         allowNull : false,
         primaryKey: true,
     },
@@ -24,7 +24,7 @@ const Expenses = db.define(`Expenses`, {
     },
 
     userId : {
-        type : Sequelize.DOUBLE,
+        type : Sequelize.STRING,
         allowNull : false
     }
 });
