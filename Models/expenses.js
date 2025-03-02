@@ -23,6 +23,21 @@ const Expenses = db.define(`Expenses`, {
         allowNull : false
     },
 
+    /* date : {
+        type : Sequelize.STRING,
+        allowNull : false
+    },
+
+    month : {
+        type : Sequelize.STRING,
+        allowNull : false
+    },
+
+    year : {
+        type : Sequelize.INTEGER,
+        allowNull : false
+    }, */
+
     userId : {
         type : Sequelize.STRING,
         allowNull : false

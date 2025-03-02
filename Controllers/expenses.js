@@ -6,12 +6,39 @@ const { v4: uuidv4 } = require('uuid');
 exports.getAllExpense = async (req, res) => {
     try {
         const { userId } = req.body;
+        
+        const page = parseInt(req.query.page || 1);
+        const limit = parseInt(req.query.limit || 5);
+        
+        //calculating offset to skip expenses
+        const offset = (page - 1) * limit;
 
-        const allUserExpense = await Expenses.findAll({ where : { userId : userId } });
+        //const allUserExpense = await Expenses.findAll({ where : { userId : userId } });
+
+        const { count, rows: allUserExpense } = await Expenses.findAndCountAll({
+          where: { userId: userId },
+          limit: limit,
+          offset: offset,
+          order: [[`createdAt`, `DESC`]],
+        });
+
+        //calculating pagination metadata
+        const totalPages = Math.ceil(count / limit);
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
 
         res.status(200).json({ 
             success: true,
             data : allUserExpense,
+            pagination : {
+                totalItems : count,
+                totalPages : totalPages,
+                currentPage : page,
+                itemsPerPage : limit,
+                hasNextPage : hasNextPage,
+                hasPrevPage : hasPrevPage
+            }
         })
 
     } catch (error) {
@@ -29,7 +56,7 @@ exports.createExpense = async (req, res) => {
     const transaction = await db.transaction(); 
 
     try {
-        const { userId, amount, category, description } = req.body;
+        const { userId, amount, category, description, /* date */} = req.body;
 
         const expenseId = uuidv4();
 
