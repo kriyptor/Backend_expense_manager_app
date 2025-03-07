@@ -1,11 +1,15 @@
+const Sequelize = require(`sequelize`);
 const Expenses = require(`../Models/expenses`);
 const Users = require(`../Models/users`);
 const db = require('../utils/database');
+const { getMonthFromNumber } = require(`../utils/helperFunctins`);
 const { v4: uuidv4 } = require('uuid');
+const { Parser } = require('json2csv');
+
 
 exports.getAllExpense = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId  = req.params.id;
         
         const page = parseInt(req.query.page || 1);
         const limit = parseInt(req.query.limit || 5);
@@ -13,7 +17,6 @@ exports.getAllExpense = async (req, res) => {
         //calculating offset to skip expenses
         const offset = (page - 1) * limit;
 
-        //const allUserExpense = await Expenses.findAll({ where : { userId : userId } });
 
         const { count, rows: allUserExpense } = await Expenses.findAndCountAll({
           where: { userId: userId },
@@ -56,47 +59,25 @@ exports.createExpense = async (req, res) => {
     const transaction = await db.transaction(); 
 
     try {
-        const { userId, amount, category, description, /* date */} = req.body;
+        const { userId, amount, category, description, date} = req.body;
+
+        const [year, month, day] = date.split("-"); 
+
+        const monthName = getMonthFromNumber(month);
 
         const expenseId = uuidv4();
-
-        /* const newExpense = await Expenses.create({
-          id: expenseId,
-          amount : amount,
-          category: category,
-          description: description,
-          userId: userId,
-        });
-
-        const prevTotalExpense = await Users.findOne({ attributes : [`totalExpense`], where : { id : userId } });
-        
-        const updatedTotalExpense = prevTotalExpense.totalExpense + amount;
-        console.log(updatedTotalExpense, prevTotalExpense.totalExpense)
-
-        await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId } }); */
-
 
         const newExpense = await Expenses.create({
             id: expenseId,
             amount : amount,
             category: category,
             description: description,
+            date : date,
+            month : monthName,
+            year : parseInt(year),
             userId: userId,
           },
           { transaction });
-  
-          /* const prevTotalExpense = await Users.findOne({
-            attributes: [`totalExpense`],
-            where: { id: userId },
-            lock : transaction.LOCK.UPDATE, //study
-            transaction 
-          });
-          
-          const updatedTotalExpense = prevTotalExpense.totalExpense + amount;
-          
-          console.log(updatedTotalExpense, prevTotalExpense.totalExpense)
-  
-          await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId }, transaction }); */
 
           await Users.increment("totalExpense", {
             by: amount,
@@ -104,13 +85,12 @@ exports.createExpense = async (req, res) => {
             transaction
           });
 
-          await transaction.commit(); // Commit the transaction
+        await transaction.commit(); // Commit the transaction
 
         res.status(201).json({ 
             success: true,
             data : newExpense,
         })
-
 
     } catch (error) {
 
@@ -129,6 +109,8 @@ exports.deleteExpense = async (req, res) => {
     const transaction = await db.transaction(); 
     try {
         const { userId, expenseId } = req.body;
+
+        console.log(userId, expenseId)
         
         const getExpenseAmt = await Expenses.findOne({
           attributes: [`amount`],  
@@ -140,18 +122,6 @@ exports.deleteExpense = async (req, res) => {
         
         const deletedExpense = await Expenses.destroy({ where : { id : expenseId }, transaction });
 
-        /* const prevTotalExpense = await Users.findOne({
-            attributes: [`totalExpense`],
-            where: { id: userId },
-            lock : transaction.LOCK.UPDATE, //study
-            transaction 
-          });
-          
-          const updatedTotalExpense = prevTotalExpense.totalExpense - getExpenseAmt.amount;
-          
-          console.log(updatedTotalExpense, prevTotalExpense.totalExpense)
-  
-          await Users.update({ totalExpense : updatedTotalExpense }, { where : { id : userId }, transaction }); */
 
           await Users.increment("totalExpense", {
             by: (Number(getExpenseAmt.amount) * -1),
@@ -178,3 +148,203 @@ exports.deleteExpense = async (req, res) => {
         });
     }
 }
+
+
+/* 
+    - all the expense for particular date 
+    - all the expense for particular month
+    - all the expense for particular month
+*/
+
+
+exports.getAllDayExpense = async (req, res) => {
+    try {
+
+        const userId = req.query.userId;
+        const date = req.query.date;
+        
+        const allDayExpenses = await Expenses.findAll({ where : { userId : userId, date : date } })
+
+        res.status(200).json({ 
+            success: true,
+            data : allDayExpenses,
+        })
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({ 
+            success: false,
+            error : error.message
+        });
+    }
+}
+
+
+exports.getAllMonthExpense = async (req, res) => {
+    try {
+        const userId = req.query.userId;
+        const month = req.query.month;
+        
+        const strMonth = getMonthFromNumber(parseInt(month.split("-").at(-1)));
+
+        console.log(userId, month, strMonth)
+
+        const allMonthExpenses = await Expenses.findAll({ where : { userId : userId, month : strMonth } })
+
+        res.status(200).json({ 
+            success: true,
+            data : allMonthExpenses,
+        })
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({ 
+            success: false,
+            error : error.message
+        });
+    }
+}
+
+
+exports.getAllYearExpense = async (req, res) => {
+    try {
+        
+        const userId = req.query.userId;
+        const year = req.query.year;
+        
+        const allYearExpenses = await Expenses.findAll({
+            
+          attributes : [`month`, [Sequelize.fn(`SUM`, Sequelize.col(`amount`)), `amount`]],  
+
+          group : [`month`],
+
+          where: { userId: userId, year: year },
+        });
+
+         res.status(200).json({ 
+            success: true,
+            data : allYearExpenses,
+        }) 
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({ 
+            success: false,
+            error : error.message
+        });
+    }
+}
+
+exports.downloadDayExpenseCSV = async (req, res) => {
+    try {
+      const userId = req.query.userId;
+      const date = req.query.date;
+  
+      const allDayExpenses = await Expenses.findAll({ where: { userId: userId, date: date } });
+  
+      if (allDayExpenses.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No expenses found for the given criteria.",
+        });
+      }
+  
+      // Convert data to CSV
+      const fields = ["id", "date", "amount", "category", "description"]; // Define CSV columns
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(allDayExpenses);
+  
+      // Set headers to trigger file download
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename=day-expenses-${date}.csv`);
+  
+      // Send CSV as response
+      res.status(200).send(csv);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  };
+
+exports.downloadMonthExpenseCSV = async (req, res) => {
+    try {
+      const userId = req.query.userId;
+      const month = req.query.month;
+        
+      console.log(month)
+      const strMonth = getMonthFromNumber(parseInt(month.split("-").at(-1)));
+  
+      const allMonthExpenses = await Expenses.findAll({ where: { userId: userId, month: strMonth } });
+  
+      if (allMonthExpenses.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No expenses found for the given criteria.",
+        });
+      }
+  
+      // Convert data to CSV
+      const fields = ["id", "date", "amount", "category", "description"];
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(allMonthExpenses);
+  
+      // Set headers to trigger file download
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename=month-expenses-${month}.csv`);
+  
+      // Send CSV as response
+      res.status(200).send(csv);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  };
+
+exports.downloadYearExpenseCSV = async (req, res) => {
+    try {
+      const userId = req.query.userId;
+      const year = req.query.year;
+  
+      const allYearExpenses = await Expenses.findAll({
+        attributes: [`month`, [Sequelize.fn(`SUM`, Sequelize.col(`amount`)), `amount`]],
+        group: [`month`],
+        where: { userId: userId, year: year },
+      });
+  
+      if (allYearExpenses.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No expenses found for the given criteria.",
+        });
+      }
+  
+      // Convert data to CSV
+      const fields = ["month", "amount"]; // Adjust fields based on grouped data
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(allYearExpenses);
+  
+      // Set headers to trigger file download
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename=year-expenses-${year}.csv`);
+  
+      // Send CSV as response
+      res.status(200).send(csv);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  };
+
+    

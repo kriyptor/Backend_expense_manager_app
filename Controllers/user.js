@@ -83,3 +83,6 @@ exports.loginUser = async (req, res) => {
         });
     }
 }
+
+
+//TODO: Create a route make user premium

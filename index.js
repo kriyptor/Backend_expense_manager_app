@@ -1,4 +1,5 @@
 const express = require(`express`);
+const path = require(`path`);
 const db = require(`./utils/database`);
 const bodyParser = require(`body-parser`);
 const userRouter = require(`./Routes/user`);
@@ -10,10 +11,23 @@ const Expenses = require(`./Models/expenses`);
 const PasswordReset = require(`./Models/passwordReset`);
 const cors = require(`cors`);
 
+// Load environment variables
+require('dotenv').config();
+
+const PORT = process.env.PORT || 4000;
+
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD) {
+    console.error('Missing required environment variables');
+    process.exit(1);
+  }
+
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 app.use('/user', userRouter);
 app.use('/expense', expenseRouter);
@@ -33,7 +47,7 @@ PasswordReset.belongsTo(Users, { foreignKey: `userId` });
 db.sync(/* { force : true } */)
 .then(() => {
     console.log(`Connected with DB!`);
-    app.listen(4000, () => console.log(`Server is running @ PORT:4000`))
+    app.listen(PORT, () => console.log(`Server is running @ PORT:${PORT}`))
 }).catch((err) => {
     console.log(err)
 })
