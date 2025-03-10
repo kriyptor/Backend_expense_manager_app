@@ -6,8 +6,10 @@ const userRouter = require(`./Routes/user`);
 const premiumRouter = require(`./Routes/premium`);
 const expenseRouter = require(`./Routes/expense`);
 const passwordRouter = require(`./Routes/password`);
+const paymentRouter = require(`./Routes/payment`);
 const Users = require(`./Models/users`);
 const Expenses = require(`./Models/expenses`);
+const Payments = require(`./Models/payments`);
 const PasswordReset = require(`./Models/passwordReset`);
 const cors = require(`cors`);
 
@@ -33,6 +35,7 @@ app.use('/user', userRouter);
 app.use('/expense', expenseRouter);
 app.use('/premium', premiumRouter);
 app.use('/password', passwordRouter);
+app.use('/payment', paymentRouter);
 
 
 //creating associations:
@@ -41,6 +44,9 @@ Expenses.belongsTo(Users, { foreignKey: `userId` });
 
 Users.hasMany(PasswordReset, { foreignKey: `userId`, onDelete : `CASCADE` });
 PasswordReset.belongsTo(Users, { foreignKey: `userId` });
+
+Users.hasMany(Payments, { foreignKey: `userId`, onDelete : `CASCADE` });
+Payments.belongsTo(Users, { foreignKey: `userId` });
 
 //sync the database
 

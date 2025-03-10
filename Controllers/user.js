@@ -51,6 +51,8 @@ exports.loginUser = async (req, res) => {
 
         const isUserExist = await Users.findOne({ where : { email : email } });
 
+        //console.log()
+
         if(!isUserExist){
             res.status(404).json({
                 success: false,
@@ -70,7 +72,7 @@ exports.loginUser = async (req, res) => {
         } else{
             res.status(200).json({
                 success: true,
-                data : isUserExist
+                userId : isUserExist.id
             });
         }
 
@@ -84,5 +86,36 @@ exports.loginUser = async (req, res) => {
     }
 }
 
+
+exports.checkPremiumUser = async (req, res) =>{
+    try {
+        const userId = req.params.userId;
+
+        const userData = await Users.findOne({ where : { id : userId } });
+
+        if(!userData){
+            res.status(404).json({
+                success: false,
+                message : `User Not Exist!`
+            });
+            return; 
+        }
+        
+        console.log(userData.premiumUser)
+
+        res.status(200).json({
+            success: true,
+            userIsPremium : userData.premiumUser
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({ 
+            success: false,
+            error : error.message
+        });
+    }
+}
 
 //TODO: Create a route make user premium

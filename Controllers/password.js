@@ -5,7 +5,7 @@ const Users = require(`../Models/users`);
 const db = require('../utils/database');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require("nodemailer");
-
+require('dotenv').config();
 
 
 exports.forgotPassword = async (req, res) =>{
@@ -28,20 +28,24 @@ exports.forgotPassword = async (req, res) =>{
         const resetLink = `http://localhost:4000/password/reset-password-link?token=${reqId}`;
 
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            service: process.env.NODE_MAILER_SERVICE,
             auth: {
-                user: "shivak.dev27@gmail.com", // Your Gmail email address
-                pass: "otovrlornoonctxb", // App Password (NOT your actual Gmail password)
+                user: process.env.NODE_MAILER_USER, // Your Gmail email address
+                pass: process.env.NODE_MAILER_PASSWORD, // App Password (NOT your actual Gmail password)
             },
         });
 
         const mailOptions = {
-            from: 'shivak.dev27@gmail.com', // Sender address
+            from: process.env.NODE_MAILER_USER, // Sender address
             to: emailId, // Recipient address
-            subject: "Your Reset Link", // Subject line
-            text: "your link", // Plain text body
-            html: resetLink, // HTML body (optional)
-          };
+            subject: "Password Reset Request", // Subject line
+            html: `
+                <p>You have requested a password reset.</p>
+                <p>Please click the following link to reset your password:</p>
+                <a href="${resetLink}">${resetLink}</a>
+                <p>If you did not request a password reset, please ignore this email.</p>
+            `
+        };
 
           const info = await transporter.sendMail(mailOptions);
           console.log('Email sent:', info.messageId);

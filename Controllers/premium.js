@@ -1,6 +1,7 @@
 const Sequelize  = require("sequelize");
 const Expenses = require(`../Models/expenses`);
 const Users = require(`../Models/users`)
+const db = require('../utils/database');
 
 exports.getLeaderboardData = async (req, res) => {
     try {
@@ -56,6 +57,78 @@ exports.getLeaderboardData = async (req, res) => {
         res.status(500).json({ 
             success: false,
             error : error.message
+        });
+    }
+}
+
+exports.makeUserPremium = async (req, res) => {
+    const transaction = await db.transaction();
+
+    try {
+        const { userId } = req.body.userId;
+
+        // Validate userId
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required"
+            });
+        }
+
+        // Check if user exists
+        const user = await Users.findOne({
+            where: { id: userId },
+            transaction
+        });
+
+        if (!user) {
+            await transaction.rollback();
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Check if user is already premium
+        if (user.premiumUser) {
+            await transaction.rollback();
+            return res.status(400).json({
+                success: false,
+                message: "User is already premium"
+            });
+        }
+
+        // Update user to premium
+        const [updatedRows] = await Users.update(
+            { premiumUser: true },
+            { 
+                where: { id: userId },
+                transaction
+            }
+        );
+
+        if (updatedRows === 0) {
+            await transaction.rollback();
+            return res.status(400).json({
+                success: false,
+                message: "Failed to update user to premium"
+            });
+        }
+
+        await transaction.commit();
+
+        return res.status(200).json({
+            success: true,
+            message: "User is Premium Now!"
+        });
+
+    } catch (error) {
+        await transaction.rollback();
+        console.log('Premium update error:', error);
+
+        return res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 }
