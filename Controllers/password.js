@@ -25,7 +25,7 @@ exports.forgotPassword = async (req, res) =>{
 
         const generatedReq = await PasswordResetReq.create({ id : reqId, userId : userId.id });
 
-        const resetLink = `http://localhost:4000/password/reset-password-link?token=${reqId}`;
+        const resetLink = `http://${process.env.PUBLIC_IP}/password/reset-password-link?token=${reqId}`;
 
         const transporter = nodemailer.createTransport({
             service: process.env.NODE_MAILER_SERVICE,
