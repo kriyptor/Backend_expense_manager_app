@@ -75,7 +75,10 @@ exports.resetPasswordGet = async (req, res) =>{
       return res.status(400).send("Invalid reset link.");
     }
 
-    res.render("reset-password", { token }); // Pass the token to the template
+    res.render("reset-password", { 
+       token : token,
+       PUBLIC_IP : process.env.PUBLIC_IP 
+    }); 
 }
 
 exports.resetPasswordPost = async (req, res) =>{

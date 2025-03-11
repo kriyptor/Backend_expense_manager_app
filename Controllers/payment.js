@@ -41,7 +41,7 @@ exports.createOrder = async (req, res) => {
                 "customer_phone": "8474090589"
             },
             "order_meta": {
-                "return_url": "http://localhost:5173/",
+                "return_url": "http://sharpener-project-react-s3.s3-website.ap-south-1.amazonaws.com/",
                 "payment_methods": "cc,dc,upi"
             },
             "order_expiry_time": formattedExpiryDate
