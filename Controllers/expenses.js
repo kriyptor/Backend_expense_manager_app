@@ -9,7 +9,7 @@ const { Parser } = require('json2csv');
 
 exports.getAllExpense = async (req, res) => {
     try {
-        const userId  = req.params.id;
+        const userId  = req.user.id; //changed
         
         const page = parseInt(req.query.page || 1);
         const limit = parseInt(req.query.limit || 5);
@@ -59,7 +59,9 @@ exports.createExpense = async (req, res) => {
     const transaction = await db.transaction(); 
 
     try {
-        const { userId, amount, category, description, date} = req.body;
+        const userId  = req.user.id; //changed
+
+        const { amount, category, description, date } = req.body; //changed
 
         const [year, month, day] = date.split("-"); 
 
@@ -108,17 +110,15 @@ exports.createExpense = async (req, res) => {
 exports.deleteExpense = async (req, res) => {
     const transaction = await db.transaction(); 
     try {
-        const { userId, expenseId } = req.body;
+        const userId  = req.user.id; //changed
 
-        console.log(userId, expenseId)
-        
+        const { expenseId } = req.body; //chnaged
+
         const getExpenseAmt = await Expenses.findOne({
           attributes: [`amount`],  
           where: { id: expenseId },
           transaction,
         });
-
-        console.log(getExpenseAmt.amount)
         
         const deletedExpense = await Expenses.destroy({ where : { id : expenseId }, transaction });
 
@@ -149,18 +149,13 @@ exports.deleteExpense = async (req, res) => {
     }
 }
 
+ 
 
-/* 
-    - all the expense for particular date 
-    - all the expense for particular month
-    - all the expense for particular month
-*/
-
-
+//all the expense for particular date 
 exports.getAllDayExpense = async (req, res) => {
     try {
 
-        const userId = req.query.userId;
+        const userId  = req.user.id; //changed
         const date = req.query.date;
         
         const allDayExpenses = await Expenses.findAll({ where : { userId : userId, date : date } })
@@ -181,14 +176,13 @@ exports.getAllDayExpense = async (req, res) => {
 }
 
 
+//all the expense for particular month
 exports.getAllMonthExpense = async (req, res) => {
     try {
-        const userId = req.query.userId;
+        const userId  = req.user.id; //changed
         const month = req.query.month;
         
         const strMonth = getMonthFromNumber(parseInt(month.split("-").at(-1)));
-
-        console.log(userId, month, strMonth)
 
         const allMonthExpenses = await Expenses.findAll({ where : { userId : userId, month : strMonth } })
 
@@ -207,11 +201,11 @@ exports.getAllMonthExpense = async (req, res) => {
     }
 }
 
-
+//all the expense for particular month
 exports.getAllYearExpense = async (req, res) => {
     try {
         
-        const userId = req.query.userId;
+        const userId  = req.user.id; //changed
         const year = req.query.year;
         
         const allYearExpenses = await Expenses.findAll({
@@ -240,7 +234,7 @@ exports.getAllYearExpense = async (req, res) => {
 
 exports.downloadDayExpenseCSV = async (req, res) => {
     try {
-      const userId = req.query.userId;
+      const userId  = req.user.id; //changed
       const date = req.query.date;
   
       const allDayExpenses = await Expenses.findAll({ where: { userId: userId, date: date } });
@@ -253,7 +247,7 @@ exports.downloadDayExpenseCSV = async (req, res) => {
       }
   
       // Convert data to CSV
-      const fields = ["id", "date", "amount", "category", "description"]; // Define CSV columns
+      const fields = ["date", "amount", "category", "description"]; // Define CSV columns
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(allDayExpenses);
   
@@ -274,7 +268,7 @@ exports.downloadDayExpenseCSV = async (req, res) => {
 
 exports.downloadMonthExpenseCSV = async (req, res) => {
     try {
-      const userId = req.query.userId;
+      const userId  = req.user.id; //changed
       const month = req.query.month;
         
       console.log(month)
@@ -290,7 +284,7 @@ exports.downloadMonthExpenseCSV = async (req, res) => {
       }
   
       // Convert data to CSV
-      const fields = ["id", "date", "amount", "category", "description"];
+      const fields = ["date", "amount", "category", "description"];
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(allMonthExpenses);
   
@@ -311,7 +305,7 @@ exports.downloadMonthExpenseCSV = async (req, res) => {
 
 exports.downloadYearExpenseCSV = async (req, res) => {
     try {
-      const userId = req.query.userId;
+      const userId  = req.user.id; //changed
       const year = req.query.year;
   
       const allYearExpenses = await Expenses.findAll({

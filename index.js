@@ -18,7 +18,7 @@ require('dotenv').config();
 
 const PORT = process.env.PORT || 4000;
 
-if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD) {
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.JWT_SECRET_KEY) {
     console.error('Missing required environment variables');
     process.exit(1);
   }
@@ -49,7 +49,6 @@ Users.hasMany(Payments, { foreignKey: `userId`, onDelete : `CASCADE` });
 Payments.belongsTo(Users, { foreignKey: `userId` });
 
 //sync the database
-
 db.sync(/* { force : true } */)
 .then(() => {
     console.log(`Connected with DB!`);

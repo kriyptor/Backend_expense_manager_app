@@ -12,9 +12,7 @@ Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 
 exports.createOrder = async (req, res) => {
     try {
-        const { userId }  = req.body;
-
-        console.log(userId)
+        const userId  = req.user.id; //changed
 
         // Validate userId
         if (!userId) {
@@ -73,7 +71,8 @@ exports.createOrder = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
     const transaction = await db.transaction();
     try {
-        const { orderId, userId } = req.body;
+        const userId  = req.user.id; //changed
+        const { orderId } = req.body; //changed
 
         // Input validation
         if (!orderId || !userId) {

@@ -65,7 +65,7 @@ exports.makeUserPremium = async (req, res) => {
     const transaction = await db.transaction();
 
     try {
-        const { userId } = req.body.userId;
+        const userId  = req.user.id; //changed
 
         // Validate userId
         if (!userId) {
